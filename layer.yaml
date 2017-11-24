@@ -11,5 +11,5 @@
 - "layer:basic"
 - "interface:peer-discovery"
 - "interface:juju-info"
-"repo": "https://github.com/majduk/layer-iptables.git"
+"repo": "https://git.launchpad.net/layer-iptables"
 "is": "iptables"
