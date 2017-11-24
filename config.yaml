@@ -13,7 +13,8 @@
     "default": !!bool "false"
     "description": "Enable or disable logging of unmatched packets. (For debugging\
       \ and trouble shooting). When enabled unmatched packets are logged into syslog\
-      \ before policy enforcement."
+      \ before policy enforcement. Logging requires access to kernel log infrastructure,\
+      \ which is not available within Linux containers."
   "use-private-addresses":
     "type": "boolean"
     "default": !!bool "true"

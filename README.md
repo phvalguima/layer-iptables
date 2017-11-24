@@ -1,11 +1,10 @@
 # Overview
 
-The charm is used to manage iptables on a machine.
+The charm is used to manage iptables ruleset on a server.
 
 # Usage
 
-This charm is a subordinate charm. It must be attached to a another application.
-All nodes of the same application it is attached to will allow ssh amongst each other.
+This charm is a subordinate charm. This means it must be attached to a another application.
 
 ```
 juju deploy iptables
@@ -20,14 +19,11 @@ Scale the application which this charm is subordinate to.
 
 # Configuration
 
-Make sure you allow access from your control nodes if you need ssh access for
-debug purposes. By default charm autodetects control node IP addresses and allows SSH from all of them.
+Make sure you allow access from your control nodes if you need ssh access for debug purposes. By default, the  charm autodetects control node IP addresses and allows SSH from all of them.
 
 The 'enforce' setting can be set to set INPUT chain policy to either ACCEPT or DENY
 
-The 'log-unmatched' setting can be set to set LOG action in the end of a rule chain created by the charm. This settings allows the iptables
- log packets unmatched by the rules into the syslog with prefix matching JUJU unit name. Logging requires access to kernel log 
-infrastructure, which is not available in Linux containers.
+The 'log-unmatched' setting can be set to set LOG action in the end of a rule chain created by the charm. This settings allows the iptables log packets unmatched by the rules into the syslog with prefix matching JUJU unit name. Logging requires access to kernel log infrastructure, which is not available in Linux containers.
 
 Example ruleset:
 ```
