@@ -11,5 +11,5 @@
 - "layer:basic"
 - "interface:peer-discovery"
 - "interface:juju-info"
-"repo": "https://github.com/tbaumann/iptables-peer-ssh.git"
-"is": "iptables-peer-ssh"
+"repo": "https://github.com/majduk/layer-iptables.git"
+"is": "iptables"
