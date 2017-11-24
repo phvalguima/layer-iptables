@@ -1,0 +1,20 @@
+"name": "iptables"
+"summary": "Simple iptables based firewall"
+"maintainer": "Michal Ajduk <Michal.Ajduk@canonical.com>"
+"description": |
+  This charm is designed to manage iptables rules
+"tags":
+- "security"
+- "network"
+"requires":
+  "host-system":
+    "interface": "juju-info"
+    "scope": "container"
+"peers":
+  "peers":
+    "interface": "peer-discovery"
+    "scope": "global"
+"series":
+- "xenial"
+- "trusty"
+"subordinate": !!bool "true"

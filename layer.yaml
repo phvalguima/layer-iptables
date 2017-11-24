@@ -1,0 +1,15 @@
+"options":
+  "basic":
+    "packages":
+    - "ipset"
+    - "iptables"
+    - "python3-netifaces"
+    "use_venv": !!bool "false"
+    "include_system_packages": !!bool "false"
+  "iptables": {}
+"includes":
+- "layer:basic"
+- "interface:peer-discovery"
+- "interface:juju-info"
+"repo": "https://github.com/tbaumann/iptables-peer-ssh.git"
+"is": "iptables-peer-ssh"

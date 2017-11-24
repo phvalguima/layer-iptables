@@ -1,0 +1,26 @@
+"options":
+  "ruleset":
+    "type": "string"
+    "default": ""
+    "description": "The ruleset in yaml format"
+  "enforce":
+    "type": "boolean"
+    "default": !!bool "false"
+    "description": "Enable or disable enforcement of firewall rules. (For debugging\
+      \ and trouble shooting). When disabled the FW policy is set to accept."
+  "log-unmatched":
+    "type": "boolean"
+    "default": !!bool "false"
+    "description": "Enable or disable logging of unmatched packets. (For debugging\
+      \ and trouble shooting). When enabled unmatched packets are logged into syslog\
+      \ before policy enforcement."
+  "use-private-addresses":
+    "type": "boolean"
+    "default": !!bool "true"
+    "description": "By default all peers are determined by their private-address as\
+      \ it is known by juju. Sometimes you may need just all addresses of the hosts."
+  "filter-peers-by-networks":
+    "type": "string"
+    "default": ""
+    "description": "If this option is set, only peer addresses in those subnets will\
+      \ be used. (space seperated list of CIDR network addresses)"
