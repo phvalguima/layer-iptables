@@ -7,7 +7,7 @@ The charm is used to manage iptables on a machine.
 This charm is a subordinate charm. It must be attached to a another application.
 All nodes of the same application it is attached to will allow ssh amongst each other.
 
- ```
+```
 juju deploy iptables
 juju juju add-relation iptables <yourapp>
 ```
@@ -25,8 +25,8 @@ debug purposes. By default charm autodetects control node IP addresses and allow
 
 The 'enforce' setting can be set to set INPUT chain policy to either ACCEPT or DENY
 
-The 'log-unmatched' setting can be set to set LOG action in the end of a rule chain created by the charm. Thih causes the iptables
-to log packets unmatched by the rules into the syslog with prefix matching JUJU unit name. Logging requires access to kernel log 
+The 'log-unmatched' setting can be set to set LOG action in the end of a rule chain created by the charm. This settings allows the iptables
+ log packets unmatched by the rules into the syslog with prefix matching JUJU unit name. Logging requires access to kernel log 
 infrastructure, which is not available in Linux containers.
 
 Example ruleset:
