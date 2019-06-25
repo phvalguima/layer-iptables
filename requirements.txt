@@ -1,3 +1,4 @@
 flake8
 pytest
 netifaces>=0.10.4
+jinja2

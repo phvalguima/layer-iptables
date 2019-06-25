@@ -16,7 +16,7 @@ TEST_ADD_NAT_RULE_YAML="""- PREROUTING:
   - dport: 80
   - protocol: tcp
   - DNAT:
-    - to-destination: 127.0.0.1:8080
+    - to-destination: "{{ interface_test }}:8080"
 """
 class TestCharm(unittest.TestCase):
 
@@ -42,20 +42,32 @@ class TestCharm(unittest.TestCase):
            Mock(return_value="loc-unit"))
     @patch('reactive.iptables.hookenv.config')
     @patch('reactive.iptables.call')
+    @patch('reactive.iptables.interfaces')
+    @patch('reactive.iptables.get_iface_addr')
     def test_run_iptables_start_with_nat_only(self,
+                                              mock_get_iface_addr,
+                                              mock_ifs,
                                               mock_call,
                                               mock_config):
+        mock_get_iface_addr.return_value = ["127.0.0.1"]
+        mock_ifs.return_value = ["test"]
         mock_config.return_value = {"nat": TEST_ADD_NAT_RULE_YAML}
         iptables_start()
         # TODO: define which assert to use here
-        
+
     @patch('reactive.iptables.log',
            Mock(return_value=""))
     @patch('reactive.iptables.hookenv.config')
     @patch('reactive.iptables.call')
+    @patch('reactive.iptables.interfaces')
+    @patch('reactive.iptables.get_iface_addr')
     def test_add_nat_rule(self,
+                          mock_get_iface_addr,
+                          mock_ifs,
                           mock_call,
                           mock_config):
+        mock_get_iface_addr.return_value = ["127.0.0.1"]
+        mock_ifs.return_value = ["test"]
         mock_config.return_value = {"nat": TEST_ADD_NAT_RULE_YAML}
         setup_nat()
         mock_call.assert_called_once_with(

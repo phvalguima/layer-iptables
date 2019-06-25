@@ -30,6 +30,7 @@ from netifaces import interfaces
 import time
 import yaml
 import six
+from jinja2 import Environment
 
 @when_not('iptables.installed')
 def install_iptables_charm():
@@ -87,6 +88,22 @@ def setup_nat():
           - DNAT:
             - to-destination: IP:PORT
     """
+    def replace_tmpl(value):
+        # Building here rather than using get_all_addresses
+        # because we need to return a dict and specifically,
+        # ifaces need to have: "interface:NAME" format
+        # Therefore, not very useful for rest of the code
+        addresses = {}
+        for iface in interfaces():
+            for addr in get_iface_addr(iface=iface,
+                                       inc_aliases=True,
+                                       fatal=False):
+                addresses["interface_{}".format(iface)] = addr
+        env = Environment()
+        t = env.from_string(str(value))
+        # For the moment, we only replace interface names
+        return t.render(**addresses)
+
     nat_rules = yaml.load(hookenv.config()["nat"])
     for n in nat_rules:
         cmd = []
@@ -102,18 +119,18 @@ def setup_nat():
                     for nat_config in option['DNAT']:
                         for k,v in six.iteritems(nat_config):
                             # str(v) avoids port to convert to int
-                            cmd.extend(['--{}'.format(k), str(v)])
+                            cmd.extend(['--{}'.format(k), replace_tmpl(v)])
                 elif option.get('SNAT'):
                     nat_found = True
                     cmd.extend(['-j','SNAT'])
                     for nat_config in option['SNAT']:
                         for k,v in six.iteritems(nat_config):
                             # str(v) avoids port to convert to int
-                            cmd.extend(['--{}'.format(k), str(v)])
+                            cmd.extend(['--{}'.format(k), replace_tmpl(v)])
                 else:
                     for k,v in six.iteritems(option):
                         # str(v) avoids port to convert to int
-                        cmd.extend(['--{}'.format(k), str(v)])
+                        cmd.extend(['--{}'.format(k), replace_tmpl(v)])
 
         # Now, grab the jump_config:
         if not nat_found:
@@ -249,7 +266,7 @@ def flush_rules():
     call('iptables -F %s'%filter_name(), shell=True)
 
 def setup_policy_drop():
-    log('Settting policy to DROP')
+    log('Setting policy to DROP')
     call('iptables --policy INPUT DROP', shell=True)  
 
 def setup_policy_accept():
@@ -316,6 +333,7 @@ def get_ruleset():
     if ruleset is None:
        ruleset=[]
     return ruleset
+
 
 def get_all_addresses():
     addresses = []
