@@ -25,3 +25,8 @@
     "default": ""
     "description": "If this option is set, only peer addresses in those subnets will\
       \ be used. (space seperated list of CIDR network addresses)"
+  "nat":
+    "type": "string"
+    "default": ""
+    "description": "String in yaml format that contains NAT settings, such as:\
+      \ nat: PREROUTING / POSTROUTING / OUTPUT / INPUT and DNAT / SNAT definitions"

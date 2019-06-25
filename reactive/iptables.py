@@ -29,6 +29,7 @@ from charmhelpers.contrib.network.ip import is_address_in_network
 from netifaces import interfaces
 import time
 import yaml
+import six
 
 @when_not('iptables.installed')
 def install_iptables_charm():
@@ -53,18 +54,81 @@ def iptables_start():
     ipset_create(controllers_set_name(), 'hash:ip')
     controllers = get_controllers()
     ipset_update(controllers_set_name(), controllers)
+    status_set('maintenance', 'setting all rules now')
     setup_chain()
     setup_rules()
     setup_policy()
+    setup_nat()
     status_set('active', 'Policy: %s' % get_policy_name() )
+
+@when('config.changed.nat')
+def nat_changed():
+    if not is_state('iptables.started'):
+        iptables_start()
+    status_set('maintenance', 'Setting up NAT Table')
+    setup_nat()
+    status_set('active', 'ready' )
+
+    
+def setup_nat():
+    """
+    Expect something similar to:
+
+      - prerouting: # chain
+          - dst: 192.168.0.1
+          - dport: 80
+          - p: tcp
+          - DNAT:
+            - to-destination: IP:PORT
+      - prerouting: # chain
+          - dst: 192.168.0.1
+          - dport: 443
+          - protocol: udp
+          - DNAT:
+            - to-destination: IP:PORT
+    """
+    nat_rules = yaml.load(hookenv.config()["nat"])
+    for n in nat_rules:
+        cmd = []
+        nat_found = False
+        for chain_name in n:
+            chain = n[chain_name]  # should be iteritems for py3
+            # Grabbing first part of the rule:
+            cmd = ['iptables','-t','nat','-A',chain_name]
+            for option in chain:
+                if option.get('DNAT'):
+                    nat_found = True
+                    cmd.extend(['-j','DNAT'])
+                    for nat_config in option['DNAT']:
+                        for k,v in six.iteritems(nat_config):
+                            # str(v) avoids port to convert to int
+                            cmd.extend(['--{}'.format(k), str(v)])
+                elif option.get('SNAT'):
+                    nat_found = True
+                    cmd.extend(['-j','SNAT'])
+                    for nat_config in option['SNAT']:
+                        for k,v in six.iteritems(nat_config):
+                            # str(v) avoids port to convert to int
+                            cmd.extend(['--{}'.format(k), str(v)])
+                else:
+                    for k,v in six.iteritems(option):
+                        # str(v) avoids port to convert to int
+                        cmd.extend(['--{}'.format(k), str(v)])
+
+        # Now, grab the jump_config:
+        if not nat_found:
+            raise TypeError("NAT config must contain either DNAT or "
+                            "SNAT definition, in capital letters")
+        log("Running rule: {}".format(' '.join(cmd)))
+        call(' '.join(cmd), shell = True)
 
 def get_enforce():
     config = hookenv.config()
-    return config['enforce']
+    return config.get('enforce')
 
 def get_log_unmatched():
     config = hookenv.config()
-    return config['log-unmatched']
+    return config.get('log-unmatched')
 
 def get_policy_name():
     if get_enforce():
@@ -120,6 +184,9 @@ def get_port_config(rule_config):
       return "--dport %s" % rule_config['port']
     
 def setup_policy():
+    if get_enforce() == None:
+        log("setup_policy: enforce not defined, will not set it")
+        return
     if get_enforce():
         setup_policy_drop()
         set_state('enforce')
@@ -128,6 +195,10 @@ def setup_policy():
         remove_state('enforce')
 
 def setup_rules():
+    if get_ruleset() == None:
+        # Case where I only want to set NAT, not filters
+        log("setup_rules: No ruleset defining, returning")
+        return
     flush_rules()
     log('Enabling rules')
     call('iptables -A %s --match state --state ESTABLISHED,RELATED -j ACCEPT'%filter_name(), shell=True)
@@ -239,6 +310,8 @@ def update_status():
         ipset_update(controllers_set_name(), controllers)
 
 def get_ruleset():
+    if hookenv.config().get('ruleset') == None:
+        return None
     ruleset=yaml.load(hookenv.config()['ruleset'])
     if ruleset is None:
        ruleset=[]
@@ -320,6 +393,9 @@ def ipset_exists(name):
     return call(['ipset', 'list', name, '-name' ])==0
 
 def ipset_create(name, type):
+    if name == None:
+        log("ipset_create: returning as name is None")
+        return
     log("ipset_create %s" % name)
     call(['ipset', 'create',  "%s" % ( name), type, '-exist' ] )
     call(['ipset', 'create',  "%s-tmp" % ( name), type, '-exist' ])
